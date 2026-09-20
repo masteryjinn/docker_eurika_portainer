@@ -1,0 +1,43 @@
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: always
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    ports:
+      - "8001:8001"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761/eureka/
+      - SERVICE_PORT=8001
+      - SERVICE_NAME=user-service
+    depends_on:
+      - eureka-server
+
+  order-service:
+    build: ./order-service
+    container_name: order-service
+    ports:
+      - "8002:8002"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761/eureka/
+      - SERVICE_PORT=8002
+      - SERVICE_NAME=order-service
+    depends_on:
+      - eureka-server
+
+volumes:
+  portainer_data:
